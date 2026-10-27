@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter landscape; margin: 0.4in; }
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; color: #1a1a1a; font-size: 7.5pt; }
+  h1 { font-size: 13pt; margin: 0 0 6px; }
+  .head { margin: 0 0 10px; }
+  .head b { display: inline-block; min-width: 92px; }
+  .sent { color: #555; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #bbb; padding: 3px 4px; vertical-align: top; }
+  th { background: #f2f2f2; font-weight: 700; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  td.num { text-align: right; color: #555; }
+  td.date { white-space: nowrap; }
+  th.payee, td.payee { min-width: 85px; }
+  tr.foot td { font-weight: 700; background: #f7f7f7; }
+  td.label { text-align: right; }
+</style>
+</head>
+<body>
+<h1>{{ title }}</h1>
+<div class="head">
+  <div><b>JOB NAME:</b> {{ header.job_name }}</div>
+  <div><b>PRODUCER:</b> {{ header.producer }}</div>
+  <div><b>PROJECT DATES:</b> {{ header.project_dates }}</div>
+  {% if header.client %}<div><b>CLIENT:</b> {{ header.client }}</div>{% endif %}
+  {% if sent %}<div class="sent">Sent {{ sent }}</div>{% endif %}
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>DATE</th><th class="payee">TO WHOM PAID</th><th>FOR WHAT</th><th class="n">TOTAL</th>
+      {% for k, label in cats %}<th class="n">{{ label }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td class="num">{{ r.number }}</td><td class="date">{{ r.date }}</td>
+      <td class="payee">{{ r.payee }}</td><td>{{ r.description }}</td><td class="n">{{ r.total }}</td>
+      {% for k, label in cats %}<td class="n">{{ r.cells[k] }}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+    <tr class="foot">
+      <td colspan="4" class="label">TOTAL FEES AND EXPENSES</td><td class="n">{{ total }}</td>
+      {% for k, label in cats %}<td class="n">{{ by_category[k] }}</td>{% endfor %}
+    </tr>
+    <tr class="foot"><td colspan="4" class="label">PRODUCTION FEE {{ fee_pct }}%</td><td class="n">{{ fee }}</td><td colspan="{{ cats|length }}"></td></tr>
+    <tr class="foot"><td colspan="4" class="label">GRAND TOTAL ALL FEES AND EXPENSES</td><td class="n">{{ grand }}</td><td colspan="{{ cats|length }}"></td></tr>
+    <tr class="foot"><td colspan="4" class="label">LESS ADVANCE RECEIVED</td><td class="n">{{ advance }}</td><td colspan="{{ cats|length }}"></td></tr>
+    <tr class="foot"><td colspan="4" class="label">DIFFERENCE BETWEEN ADVANCE AND ACTUALS</td><td class="n">{{ difference }}</td><td colspan="{{ cats|length }}"></td></tr>
+  </tbody>
+</table>
+</body>
+</html>

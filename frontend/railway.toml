@@ -1,0 +1,10 @@
+# Picked up when a Railway service's Root Directory is `frontend`. The backend
+# service keeps the repo root (its Dockerfile does `COPY backend/`), so the two
+# services are the same repo with different root directories.
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/"
+restartPolicyType = "on_failure"

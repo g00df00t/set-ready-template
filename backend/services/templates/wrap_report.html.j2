@@ -1,0 +1,319 @@
+{#
+  The wrap report — a producer's record of a shoot day.
+
+  Rendered live, NOT stored: confirmations arrive after the fact, so a frozen
+  copy would need regenerating to stay true. That is the opposite choice from the
+  call sheet, and deliberate — see docs/wrap-report-plan.md §5.
+
+  This HTML is injected into the app, so every selector is scoped under
+  .wrap-report; an unscoped <style> here would repaint the whole application.
+  Tokens default to the app's dark ground and flip under [data-theme="light"],
+  matching how the app itself toggles.
+
+  Palette is built from lighting gels — tungsten 3200K against daylight 5600K —
+  which is the one colour relationship everyone on a set already thinks in.
+#}
+<style>
+.wrap-report {
+  --paper:#0e1420; --surface-2:#1b2433; --rule:#2a3547; --rule-faint:#212b3a;
+  --ink:#eef2f8; --ink-2:#a8b4c6; --ink-3:#7c8798;
+  --tungsten:#e0912f; --tungsten-bg:rgba(224,145,47,.16);
+  --daylight:#7fa3c4; --daylight-bg:rgba(127,163,196,.14);
+  --confirmed:#55b184;
+  background:var(--paper); color:var(--ink);
+  font-family:"Public Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.6; padding:0 28px 72px; border-radius:12px;
+}
+[data-theme="light"] .wrap-report {
+  --paper:#fbf8f3; --surface-2:#f5f1ea; --rule:#ddd5c8; --rule-faint:#e9e3d9;
+  --ink:#221c14; --ink-2:#5d5344; --ink-3:#8b8071;
+  --tungsten:#b96f14; --tungsten-bg:rgba(224,145,47,.13);
+  --daylight:#3d6f9c; --daylight-bg:rgba(61,111,156,.11);
+  --confirmed:#2f6f4f;
+}
+.wrap-report * { box-sizing:border-box; }
+.wrap-report .mono { font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
+.wrap-report .eyebrow { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px;
+  font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); }
+.wrap-report .strip { display:flex; align-items:center; gap:10px; padding-top:40px; margin-bottom:16px; }
+.wrap-report .strip i { display:block; height:9px; border-radius:1px; }
+.wrap-report .strip i:nth-child(1){ width:62px; background:var(--tungsten); }
+.wrap-report .strip i:nth-child(2){ width:22px; background:var(--daylight); }
+.wrap-report .strip i:nth-child(3){ width:9px;  background:var(--ink-3); }
+.wrap-report h1 { font-family:"Barlow Condensed","Arial Narrow",sans-serif; font-weight:700;
+  font-size:clamp(2.4rem,6vw,3.9rem); line-height:.96; margin:0; text-transform:uppercase; text-wrap:balance; }
+.wrap-report .sub { margin:12px 0 0; color:var(--ink-2); max-width:62ch; }
+.wrap-report .facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  margin-top:30px; border-top:2px solid var(--ink); border-bottom:1px solid var(--rule); }
+.wrap-report .fact { padding:13px 16px 14px; border-right:1px solid var(--rule-faint); }
+.wrap-report .fact:last-child { border-right:none; }
+.wrap-report .fact dt { font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin:0 0 4px; }
+.wrap-report .fact dd { margin:0; font-family:"Barlow Condensed",sans-serif; font-weight:600;
+  font-size:1.45rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+.wrap-report section { margin-top:56px; }
+.wrap-report .shead { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  border-bottom:1px solid var(--rule); padding-bottom:9px; margin-bottom:20px; }
+.wrap-report .shead h2 { font-family:"Barlow Condensed",sans-serif; font-weight:600; font-size:1.5rem;
+  letter-spacing:.01em; text-transform:uppercase; margin:0; }
+.wrap-report .shead .note { font-size:.85rem; color:var(--ink-3); margin-left:auto; }
+.wrap-report p.lede { margin:0 0 18px; color:var(--ink-2); max-width:66ch; }
+
+/* Timeline: percentages, so it scales with the container instead of a fixed viewBox. */
+.wrap-report .tl { position:relative; height:96px; margin:26px 0 8px; }
+.wrap-report .tl .track { position:absolute; left:0; right:0; top:34px; height:34px; }
+.wrap-report .tl .blk { position:absolute; top:0; height:34px; border-radius:3px;
+  background:var(--daylight); overflow:hidden; }
+.wrap-report .tl .blk.meal { background:repeating-linear-gradient(135deg,
+  var(--surface-2) 0 5px, var(--rule) 5px 6px); border:1px solid var(--rule); }
+.wrap-report .tl .axis { position:absolute; left:0; right:0; top:74px; border-top:1px solid var(--rule); }
+.wrap-report .tl .tick { position:absolute; top:74px; font-family:"IBM Plex Mono",monospace;
+  font-size:10px; color:var(--ink-3); transform:translateX(-50%); padding-top:8px; }
+.wrap-report .tl .tick:before { content:""; position:absolute; left:50%; top:0; height:7px;
+  border-left:1px solid var(--rule); }
+.wrap-report .tl .mark { position:absolute; top:6px; bottom:22px; border-left:1.5px dashed var(--tungsten); }
+.wrap-report .tl .mark span { position:absolute; top:-4px; left:6px; white-space:nowrap;
+  font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--tungsten); }
+/* Past the midpoint the label would run off the right edge, so hang it left instead. */
+.wrap-report .tl .mark.late span { left:auto; right:6px; }
+.wrap-report .tl-ends { display:flex; justify-content:space-between;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-3); }
+.wrap-report .tl-legend { display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:14px; }
+.wrap-report .tl-legend span { display:inline-flex; align-items:center; gap:7px; font-size:.82rem; color:var(--ink-2); }
+.wrap-report .tl-legend i { width:12px; height:12px; border-radius:2px; display:block; }
+.wrap-report .blocklist { display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:16px;
+  font-size:.86rem; color:var(--ink-2); }
+.wrap-report .blocklist b { font-family:"IBM Plex Mono",monospace; font-weight:500; color:var(--ink); }
+
+/* Crew list — the durable record of who was on the job. */
+.wrap-report .roster { border-top:2px solid var(--ink); }
+.wrap-report .dept-head { display:flex; justify-content:space-between; align-items:baseline;
+  padding:15px 0 6px; border-bottom:1px solid var(--rule); font-family:"Barlow Condensed",sans-serif;
+  font-weight:600; font-size:1rem; letter-spacing:.06em; text-transform:uppercase; }
+.wrap-report .dept-head .mono { font-size:.8rem; color:var(--ink-3); font-weight:400; letter-spacing:0; }
+.wrap-report .dept-head.talent { color:var(--tungsten); border-bottom-color:var(--tungsten); }
+.wrap-report .person { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1.35fr) 74px 22px;
+  gap:14px; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--rule-faint); }
+.wrap-report .person .who { font-weight:500; }
+.wrap-report .person .role { color:var(--ink-2); font-size:.92rem; }
+.wrap-report .person .call { color:var(--ink-2); font-size:.87rem; text-align:right;
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; }
+.wrap-report .person .ok { color:var(--confirmed); text-align:center; }
+.wrap-report .person .no { color:var(--ink-3); text-align:center; }
+/* Talent are never asked to confirm, so they get neither a tick nor a dash. */
+.wrap-report .person .na { color:var(--rule); text-align:center; }
+
+.wrap-report .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:28px; }
+.wrap-report .block h3 { font-family:"Barlow Condensed",sans-serif; font-weight:600; font-size:1.05rem;
+  letter-spacing:.02em; text-transform:uppercase; margin:0 0 8px; }
+.wrap-report .block p { margin:0 0 6px; color:var(--ink-2); font-size:.93rem; }
+.wrap-report .block .dim { color:var(--ink-3); }
+.wrap-report a { color:var(--daylight); text-decoration:none; border-bottom:1px solid transparent; }
+.wrap-report a:hover { border-bottom-color:var(--daylight); }
+.wrap-report .maps { display:flex; flex-wrap:wrap; gap:6px 16px; margin:2px 0 8px; }
+.wrap-report .maps a { font-family:"IBM Plex Mono",monospace; font-size:.79rem; }
+.wrap-report .callout { border-left:3px solid var(--tungsten); background:var(--tungsten-bg);
+  padding:15px 18px; border-radius:0 6px 6px 0; margin-top:22px; }
+.wrap-report .callout p { margin:0; font-size:.94rem; color:var(--ink-2); }
+.wrap-report .callout b { color:var(--ink); }
+.wrap-report footer { margin-top:60px; padding-top:18px; border-top:2px solid var(--ink);
+  display:flex; flex-wrap:wrap; gap:8px 26px; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; color:var(--ink-3); }
+@media (max-width:720px) {
+  .wrap-report { padding:0 18px 56px; }
+  .wrap-report .person { grid-template-columns:minmax(0,1fr) 62px 20px; gap:2px 10px; padding:8px 0; }
+  .wrap-report .person .role { grid-column:1 / -1; grid-row:2; font-size:.85rem; }
+  .wrap-report .person .call, .wrap-report .person .ok, .wrap-report .person .no { grid-row:1; }
+}
+</style>
+
+<div class="wrap-report">
+  <div class="strip"><i></i><i></i><i></i></div>
+  <div class="eyebrow">Wrap report{% if project.shoot_date %} &middot; {{ project.shoot_date | display_date }}{% endif %}</div>
+  <h1>{{ project.name }}</h1>
+  {% if location and location.location_name %}
+    <p class="sub">{{ location.location_name }}{% if moves %}, plus {{ moves | length }} company move{{ '' if moves | length == 1 else 's' }}{% endif %}.</p>
+  {% endif %}
+
+  <dl class="facts">
+    {% if project.first_call %}<div class="fact"><dt>First call</dt><dd class="mono">{{ project.first_call }}</dd></div>{% endif %}
+    {% if project.first_shot %}<div class="fact"><dt>First shot</dt><dd class="mono">{{ project.first_shot }}</dd></div>{% endif %}
+    {% if project.est_wrap %}<div class="fact"><dt>Est. wrap</dt><dd class="mono">{{ project.est_wrap }}</dd></div>{% endif %}
+    {% if project.day_length %}<div class="fact"><dt>Day length</dt><dd class="mono">{{ project.day_length }}</dd></div>{% endif %}
+    <div class="fact"><dt>On the call sheet</dt><dd class="mono">{{ headcount.on_call_sheet }}</dd></div>
+  </dl>
+
+  {% if timeline %}
+  <section>
+    <div class="shead">
+      <h2>The day</h2>
+      <span class="note">{{ timeline.blocks | length }} scheduled block{{ '' if timeline.blocks | length == 1 else 's' }}</span>
+    </div>
+    <div class="tl">
+      <div class="track">
+        {% for b in timeline.blocks %}
+          <div class="blk {{ b.kind }}" style="left:{{ b.left }}%;width:{{ b.width }}%" title="{{ b.start }} — {{ b.label }}"></div>
+        {% endfor %}
+      </div>
+      {% for m in timeline.markers %}
+        <div class="mark{{ ' late' if m.left > 55 else '' }}" style="left:{{ m.left }}%"><span>{{ m.label }} {{ m.at }}</span></div>
+      {% endfor %}
+      <div class="axis"></div>
+      {% for t in timeline.ticks %}<div class="tick" style="left:{{ t.left }}%">{{ t.label }}</div>{% endfor %}
+    </div>
+    <div class="tl-ends"><span>{{ timeline.start }}</span><span>{{ timeline.end }}</span></div>
+    <div class="tl-legend">
+      <span><i style="background:var(--daylight)"></i> Shooting</span>
+      {% if timeline.blocks | selectattr('kind','equalto','meal') | list %}
+        <span><i style="background:repeating-linear-gradient(135deg,var(--surface-2) 0 5px,var(--rule) 5px 6px);border:1px solid var(--rule)"></i> Meal</span>
+      {% endif %}
+      {% if timeline.markers %}<span><i style="background:var(--tungsten)"></i> Company move</span>{% endif %}
+    </div>
+    <div class="blocklist">
+      {% for b in timeline.blocks %}<span><b>{{ b.start }}</b> {{ b.label }}</span>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section>
+    <div class="shead">
+      <h2>The crew</h2>
+      <span class="note">
+        {{ headcount.crew }} crew{% if headcount.talent %} &middot; {{ headcount.talent }} talent{% endif %}
+        {% if confirmations.total %} &middot; {{ confirmations.confirmed }} of {{ confirmations.total }} crew confirmed{% endif %}
+      </span>
+    </div>
+    <p class="lede">In call-sheet order, so it reads the way the day was posted. A tick means they
+      confirmed receipt; a dash means the sheet reached them and the button was never pressed.
+      Talent are never asked to confirm, so they carry neither.</p>
+
+    <div class="roster">
+      {% for dept in departments %}
+        <div class="dept-head"><span>{{ dept.label or 'No department' }}</span><span class="mono">{{ dept.count }}</span></div>
+        {% for p in dept.people %}
+          <div class="person">
+            <span class="who">{{ p.name }}</span>
+            <span class="role">{{ p.role or '—' }}</span>
+            <span class="call">{{ p.call or '—' }}</span>
+            {% if not p.confirmable %}<span class="na">&middot;</span>
+            {% elif p.confirmed %}<span class="ok">&#10003;</span>
+            {% else %}<span class="no">&mdash;</span>{% endif %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+      {% if talent %}
+        <div class="dept-head talent"><span>Talent</span><span class="mono">{{ talent | length }}</span></div>
+        {% for p in talent %}
+          <div class="person">
+            <span class="who">{{ p.name }}</span>
+            <span class="role">{{ p.role or '—' }}</span>
+            <span class="call">{{ p.call or '—' }}</span>
+            {% if not p.confirmable %}<span class="na">&middot;</span>
+            {% elif p.confirmed %}<span class="ok">&#10003;</span>
+            {% else %}<span class="no">&mdash;</span>{% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {% if confirmations.missing %}
+      {# The one part of the confirmation data that earns its place: named, so it
+         is a text a producer can send rather than a statistic they can admire. #}
+      <div class="callout">
+        <p><b>{{ confirmations.missing | length }} never confirmed</b> &mdash;
+          {% for p in confirmations.missing %}{{ p.name }}{% if p.role %} ({{ p.role }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}.
+          The sheet reached them; the button was never pressed. Worth a text next time rather than a resend.</p>
+      </div>
+    {% endif %}
+    {% if call_spread %}
+      <div class="callout" style="border-left-color:var(--daylight);background:var(--daylight-bg)">
+        <p>Call times spanned <b class="mono">{{ call_spread }}</b> &mdash;
+          earliest <b class="mono">{{ earliest_call }}</b>, latest <b class="mono">{{ latest_call }}</b>.
+          Contact details for everyone here are in your Roster.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if location or moves %}
+  <section>
+    <div class="shead"><h2>Locations</h2></div>
+    <div class="cols">
+      {% if location %}
+        <div class="block">
+          <h3>{{ location.location_name or 'Primary location' }}</h3>
+          {% if location.address %}
+            <p>{{ location.address }}</p>
+            <p class="maps">
+              <a href="{{ location.address | maps }}" target="_blank" rel="noopener">Apple Maps</a>
+              <a href="{{ location.address | maps('google') }}" target="_blank" rel="noopener">Google Maps</a>
+            </p>
+          {% endif %}
+          {% if location.parking_notes %}<p class="dim">{{ location.parking_notes | nl2br }}</p>{% endif %}
+        </div>
+      {% endif %}
+      {% for m in moves %}
+        <div class="block">
+          <h3>{{ m.label or m.location_name or 'Company move' }}{% if m.move_time %} &mdash; {{ m.move_time | display_time }}{% endif %}</h3>
+          {% if m.address %}
+            <p>{{ m.address }}</p>
+            <p class="maps">
+              <a href="{{ m.address | maps }}" target="_blank" rel="noopener">Apple Maps</a>
+              <a href="{{ m.address | maps('google') }}" target="_blank" rel="noopener">Google Maps</a>
+            </p>
+          {% endif %}
+          {% if m.parking_notes %}<p class="dim">{{ m.parking_notes | nl2br }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if accommodation or meal_plan or attachments or confirmations.sent_at or wants_pdf %}
+  <section>
+    <div class="shead"><h2>Logistics</h2></div>
+    <div class="cols">
+      {% if accommodation %}
+        <div class="block">
+          <h3>Accommodations</h3>
+          {% if accommodation.hotel_name %}<p>{{ accommodation.hotel_name }}</p>{% endif %}
+          {% if accommodation.address %}
+            <p class="maps">
+              <a href="{{ accommodation.address | maps }}" target="_blank" rel="noopener">Apple Maps</a>
+              <a href="{{ accommodation.address | maps('google') }}" target="_blank" rel="noopener">Google Maps</a>
+            </p>
+          {% endif %}
+          {% if accommodation.room_block %}<p class="mono" style="font-size:.88rem">Room block {{ accommodation.room_block }}</p>{% endif %}
+          {% if accommodation.notes %}<p class="dim">{{ accommodation.notes | nl2br }}</p>{% endif %}
+        </div>
+      {% endif %}
+      {% if meal_plan %}
+        <div class="block">
+          <h3>Meals</h3>
+          {% for m in meal_plan %}
+            <p>{{ m.label | title }}
+              {% if m.start %}<span class="mono">{{ m.start }}{% if m.end %} &ndash; {{ m.end }}{% endif %}</span>{% endif %}
+            </p>
+            {% if m.notes %}<p class="dim">{{ m.notes | nl2br }}</p>{% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% if confirmations.sent_at or attachments or wants_pdf %}
+        {# Only when there is something to report. A block that exists to say
+           "nothing happened" is noise on a page meant to be a record. #}
+        <div class="block">
+          <h3>What went out</h3>
+          {% if confirmations.sent_at %}<p>Call sheet sent to <span class="mono">{{ confirmations.total }}</span> people</p>{% endif %}
+          {% if wants_pdf %}<p><span class="mono">{{ wants_pdf }}</span> asked for the PDF copy</p>{% endif %}
+          {% if attachments %}<p class="dim">Attached: {% for a in attachments %}{{ a.filename }}{% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer>
+    <span>{{ project.name }}</span>
+    {% if project.shoot_date %}<span>{{ project.shoot_date | display_date }}</span>{% endif %}
+    <span>SET&gt;READY</span>
+  </footer>
+</div>

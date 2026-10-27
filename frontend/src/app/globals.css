@@ -1,0 +1,795 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* The one curve every hover/focus transition in the app should share —
+     already proven on the landing page's confirm-pill and quick-import
+     animations. Overriding Tailwind's defaults here means every bare
+     `transition-colors`/`transition-all`/etc. utility picks it up too,
+     without hunting down each call site. A utility that names its own
+     duration/ease (the call sheet's progress bars, which need `linear`)
+     is untouched — this only replaces what nothing else specified. */
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 180ms;
+}
+
+/* ── Design tokens: dark (default) ── */
+:root {
+  --bg-base:        #0d1117;
+  --bg-sidebar:     #111927;
+  --bg-surface:     #161d2e;
+  --bg-elevated:    #1d2740;
+  --border:         #263248;
+  --text-primary:   #e8edf5;
+  --text-secondary: #909cb0;
+  --text-muted:     #8b95ab;
+  --accent:         #5a5cf0;
+  --accent-hover:   #818cf8;
+  --accent-text:    #a5b4fc;
+  --accent-subtle:  rgba(99, 102, 241, 0.14);
+  --danger:         #f87171;
+  --danger-subtle:  rgba(248, 113, 113, 0.10);
+  --success:        #34d399;
+  --success-subtle: rgba(52, 211, 153, 0.10);
+  /* Something the producer still has to fill in ("Crew Travel in not set") —
+     not an error, not destructive. Not --day-prep, even though the hues are
+     near: a day-type colour only ever means a day type (docs/design-system.md). */
+  --warning:        #f5c451;
+  --warning-subtle: rgba(245, 196, 81, 0.12);
+
+  /* --field-opacity fades out the body::before gradient. --blur is off here:
+     over opaque dark surfaces it costs GPU and buys nothing. --shadow-color is
+     a colour only, never a whole shadow — each site keeps its own offset and
+     blur, which are tuned to what that element is. */
+  --field-opacity:  0;
+  --blur:           none;
+  /* Native form controls (the date picker's calendar and its popup) render from
+     this, not from our tokens. Without it the calendar glyph is drawn dark on a
+     dark field and is effectively invisible. */
+  --color-scheme:   dark;
+  --scrim:          rgba(0, 0, 0, 0.62);
+  --shadow-color:   rgba(0, 0, 0, 0.36);
+  /* Dark's sidebar is already opaque, so the drawer needs nothing special —
+     tracked through --bg-sidebar so the two can't drift apart. */
+  --drawer-bg:      var(--bg-sidebar);
+  /* Inputs used to read --bg-base directly, which worked only while it was a
+     colour. This is that same value, held as a literal now that light's
+     --bg-base is transparent and can no longer stand in for a fill. */
+  --bg-inset:       #0d1117;
+
+  /* ── Jobs design system (docs/job-layer-plan.md §7) ──
+     Alongside the tokens above, not a second system: --bg-surface/--border/
+     --bg-inset/--bg-elevated still mean what they already mean, and .card and
+     .field-input are unchanged. These four cover what genuinely doesn't exist
+     yet — a second border weight, a floating-popover surface, and the four
+     day-type colors with their tinted backgrounds (Travel in/Prep-Scout/Shoot
+     day/Wrap day; Travel out borrows Travel in's), the same words the rooming list and talent hold docs
+     will use). Colors picked to read against --bg-elevated, not white. */
+  --border-strong:  #35415c;
+  --popover-bg:     #1d2740;
+  --popover-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 24px 56px -20px rgba(0,0,0,0.75);
+  --day-travel:     #7cc4f0; --day-travel-bg: rgba(124,196,240,0.13);
+  --day-prep:       #f0b46e; --day-prep-bg:   rgba(240,180,110,0.13);
+  --day-shoot:      #a5b4fc; --day-shoot-bg:  rgba(165,180,252,0.15);
+  --day-wrap:       #5fd3bd; --day-wrap-bg:   rgba(95,211,189,0.13);
+  /* Joined 2026-10-01: a hotel check-in with no travel, and a down day. Hues
+     kept clear of the five above and of --danger/--warning. */
+  --day-checkin:    #b8d96b; --day-checkin-bg: rgba(184,217,107,0.13);
+  --day-off:        #f28fb0; --day-off-bg:     rgba(242,143,176,0.13);
+}
+
+html[data-theme="light"] {
+  /* Transparent, not a color. Fifteen pages wrap their content in an in-flow
+     `min-h-screen` div filled with --bg-base; an opaque value there paints over
+     the body::before gradient no matter where the gradient lives. */
+  --bg-base:        transparent;
+  --bg-sidebar:     rgba(255, 255, 255, 0.52);
+  --bg-surface:     rgba(255, 255, 255, 0.90);
+  --bg-elevated:    rgba(255, 255, 255, 0.62);
+  --border:         rgba(37, 33, 50, 0.13);
+  --text-primary:   #252132;
+  --text-secondary: #4e4767;
+  --text-muted:     #6f6884;
+  --accent:         #6a5bc2;
+  --accent-hover:   #5b4db0;
+  --accent-text:    #5b4db0;
+  --accent-subtle:  rgba(106, 91, 194, 0.11);
+  --danger:         #b8453c;
+  --danger-subtle:  rgba(184, 69, 60, 0.10);
+  --success:        #2f7568;
+  --success-subtle: rgba(47, 117, 104, 0.09);
+  --warning:        #8a5d00;
+  --warning-subtle: rgba(138, 93, 0, 0.10);
+
+  /* --field-opacity fades in the body::before gradient. --shadow-color is plum
+     rather than black and much lighter than dark's: a black shadow on pastel
+     reads as grime, and the pale ground needs far less of it to register. */
+  --field-opacity:  1;
+  --blur:           blur(16px);
+  --color-scheme:   light;
+  --scrim:          rgba(37, 33, 50, 0.34);
+  --shadow-color:   rgba(37, 33, 50, 0.16);
+  /* Near-opaque, not frosted: the drawer sits above the scrim, not over the
+     gradient. The remaining 4% keeps it from reading as a flat white slab. */
+  --drawer-bg:      rgba(255, 255, 255, 0.96);
+  /* A tint darker than whatever it sits on, rather than a fixed colour — an
+     input recesses the same way on a .90 card as on a .52 sidebar. */
+  --bg-inset:       rgba(37, 33, 50, 0.04);
+
+  /* Jobs design system, light — see the dark block above for what these are. */
+  --border-strong:  rgba(37,33,50,0.17);
+  --popover-bg:     #ffffff;
+  --popover-shadow: 0 2px 6px rgba(37,33,50,0.06), 0 28px 60px -24px rgba(37,33,50,0.40);
+  --day-travel:     #1f6f9c; --day-travel-bg: rgba(31,111,156,0.10);
+  --day-prep:       #95580b; --day-prep-bg:   rgba(149,88,11,0.10);
+  --day-shoot:      #5b4db0; --day-shoot-bg:  rgba(106,91,194,0.12);
+  --day-wrap:       #2f7568; --day-wrap-bg:   rgba(47,117,104,0.10);
+  --day-checkin:    #557216; --day-checkin-bg: rgba(85,114,22,0.10);
+  --day-off:        #a33a62; --day-off-bg:     rgba(163,58,98,0.10);
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The pastel field. Fixed so it doesn't scroll — a long project page would
+   otherwise run off the bottom of it into flat color. Stays mounted in both
+   themes and just fades, so there's no conditional render and the toggle
+   transitions smoothly. Never give `html` a background: body's background only
+   propagates to the canvas while html has none, and that propagation is what
+   leaves room for this layer to sit behind it. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--field-opacity);
+  transition: opacity 0.35s ease;
+  background:
+    radial-gradient(56% 42% at 10%  2%, #FAECF2 0%, rgba(250, 236, 242, 0) 66%),
+    radial-gradient(50% 38% at 94% 10%, #E5F0FA 0%, rgba(229, 240, 250, 0) 70%),
+    radial-gradient(60% 44% at 84% 92%, #F2EBFB 0%, rgba(242, 235, 251, 0) 72%),
+    radial-gradient(46% 36% at 14% 80%, #E8F4F0 0%, rgba(232, 244, 240, 0) 74%),
+    #EDF0FB;
+}
+
+/* --bg-base is transparent in light, so the canvas needs its own fill or it
+   stays white where the gradient fades out. */
+html[data-theme="light"] body { background: #EDF0FB; }
+
+/* Tailwind 4 resets every <button> to the plain arrow cursor. .btn puts the
+   hand back, but a bare button — a date cell, a calendar day, "Remove from
+   job" — gave no sign it could be clicked at all. Base layer, so any component
+   class can still override it. */
+@layer base {
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    transition: background var(--default-transition-duration) var(--default-transition-timing-function),
+                color var(--default-transition-duration) var(--default-transition-timing-function),
+                border-color var(--default-transition-duration) var(--default-transition-timing-function),
+                opacity var(--default-transition-duration) var(--default-transition-timing-function),
+                transform 0.1s var(--default-transition-timing-function);
+  }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* A click had no feedback beyond the color change — everything else in the
+     app now eases, so a press that didn't acknowledge itself stood out. */
+  .btn:active { transform: scale(0.97); }
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition-duration: 0.01ms !important; }
+    .btn:active { transform: none; }
+  }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .btn-secondary {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--text-muted); }
+
+  .btn-ghost {
+    padding: 0.3125rem 0.625rem;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover { color: var(--text-primary); background: var(--bg-elevated); }
+
+  /* Same shape as .btn-secondary, in the success hue. Used for "From roster",
+     which is a different kind of action from the neutral ones beside it — it
+     pulls in people you already have rather than creating something new — and
+     was easy to miss in a row of identical grey buttons. Border matches the
+     fill at rest so it reads as a tint rather than a second outlined button,
+     and firms up on hover. */
+  .btn-success {
+    background: var(--success-subtle);
+    color: var(--success);
+    border-color: var(--success-subtle);
+  }
+  .btn-success:hover { border-color: var(--success); }
+
+  .btn-sm { padding: 0.25rem 0.625rem; font-size: 0.75rem; }
+
+  .btn-danger {
+    padding: 0.3125rem 0.625rem;
+    font-size: 0.75rem;
+    background: transparent;
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: var(--danger-subtle); }
+
+  /* The Jobs screens' quieter take on removing something: the word sits in
+     the secondary text colour and only warms to red on hover, and the
+     confirm is a soft red tint rather than a solid red block. Removing is
+     still one visible click away; it just doesn't shout from every row.
+     .btn-danger stays as it is for the pages that haven't had Phase 1b. */
+  .btn-remove {
+    padding: 0.3125rem 0.625rem;
+    font-size: 0.75rem;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .btn-remove:hover { background: var(--danger-subtle); color: var(--danger); }
+  .btn-confirm-remove {
+    background: var(--danger-subtle);
+    color: var(--danger);
+    border: 1px solid transparent;
+  }
+  .btn-confirm-remove:hover:not(:disabled) { border-color: var(--danger); }
+
+  /* ── Inputs ── */
+  .field-input {
+    width: 100%;
+    background: var(--bg-inset);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color var(--default-transition-duration) var(--default-transition-timing-function),
+                box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+  .field-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+  .field-input::placeholder { color: var(--text-muted); }
+
+  /* A value the server refused. The border says *where* it went wrong, the
+     message says *what* — colour can't be the only signal, so aria-invalid is
+     what drives the styling and the text always renders alongside it. */
+  .field-input[aria-invalid="true"] {
+    border-color: var(--danger);
+    background: var(--danger-subtle);
+  }
+  .field-input[aria-invalid="true"]:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px var(--danger-subtle);
+  }
+
+  .field-error {
+    margin-top: 0.3rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--danger);
+  }
+
+  /* In a dense table the message can neither push the row taller nor widen a
+     fixed column, so it floats over the rows beneath instead of reflowing them.
+     It needs the blur for the same reason .card does: light's surfaces are
+     translucent, and without it the row underneath reads straight through. */
+  .field-error--float {
+    position: absolute;
+    top: 100%;
+    z-index: 30;
+    width: max-content;
+    max-width: 17rem;
+    margin-top: 0.3rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--danger);
+    border-radius: 0.5rem;
+    background: var(--bg-elevated);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    box-shadow: 0 4px 16px var(--shadow-color);
+  }
+  .field-error--float-left { left: 0; }
+  /* For a field that sits near the right edge of its container — anchoring left
+     there would push the box outside the card. */
+  .field-error--float-right { right: 0; }
+
+  /* Scoped to date fields rather than set on :root, where it would also restyle
+     every scrollbar, checkbox and select in the app. */
+  .date-input {
+    color-scheme: var(--color-scheme);
+    cursor: pointer;
+  }
+  .date-input::-webkit-calendar-picker-indicator { cursor: pointer; }
+
+  .field-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.375rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── Accessibility ── */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+  }
+  .skip-link:focus { left: 0; }
+
+  /* ── Legal / prose pages ── */
+  .legal { color: var(--text-secondary); line-height: 1.7; font-size: 0.9375rem; }
+  .legal h2 { color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin: 2rem 0 0.5rem; }
+  .legal h3 { color: var(--text-primary); font-size: 1rem; font-weight: 600; margin: 1.25rem 0 0.4rem; }
+  .legal p { margin: 0.65rem 0; }
+  .legal ul { margin: 0.65rem 0; padding-left: 1.25rem; }
+  .legal li { margin: 0.3rem 0; }
+  .legal strong { color: var(--text-primary); }
+  .legal a { color: var(--accent-hover); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+  }
+
+  /* ── Project sidebar / drawer ──
+     One element in two modes, so this can't live in an inline style. On desktop
+     it is chrome floating over the gradient and the frosting earns its keep. On
+     mobile it is a drawer sitting *above* the scrim, so translucency there just
+     picks the dim back up and greys the drawer — it goes near-opaque instead,
+     and drops the blur, which buys nothing over a scrim. */
+  .project-chrome {
+    background: var(--drawer-bg);
+  }
+  @media (min-width: 48rem) {
+    .project-chrome {
+      background: var(--bg-sidebar);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+  }
+
+  /* ── Sidebar nav ── */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    transition: background var(--default-transition-duration) var(--default-transition-timing-function),
+                color var(--default-transition-duration) var(--default-transition-timing-function);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .nav-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+  .nav-item.active {
+    background: var(--accent-subtle);
+    color: var(--accent-hover);
+    font-weight: 500;
+  }
+
+  /* Call Sheet is the point of the whole app — the thing every other page
+     in the sidebar feeds into — so it gets a permanent solid pill instead
+     of the plain-text treatment every other nav item uses, always on, not
+     just while its page is active (a plain highlight-when-active state
+     would look identical to Crew or Notes the rest of the time). */
+  .nav-item-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    text-decoration: none;
+    transition: background var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+  .nav-item-primary:hover,
+  .nav-item-primary.active {
+    background: var(--accent-hover);
+  }
+
+  /* ── Badges ── */
+  .badge-confirmed {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background: var(--success-subtle);
+    color: var(--success);
+  }
+  .badge-pending {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+  }
+
+  /* ── Table ── */
+  .data-table { width: 100%; font-size: 0.8125rem; border-collapse: collapse; }
+  .data-table th {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 0.75rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    transition: background var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--bg-elevated); }
+
+  /* Actions pinned to the right edge of the scroll container.
+   *
+   * A wide table scrolls horizontally, and Edit/Remove living in the last column
+   * means they are the first thing to disappear — which is exactly what happened
+   * on the crew page: the buttons were there, just off the right edge with no
+   * visible scrollbar to suggest it. Pinning them means the width of the table
+   * stops being able to hide the controls.
+   *
+   * The background is opaque so scrolled cells pass underneath rather than
+   * through, and the hover rule is repeated because the generic one above is
+   * overridden by this more specific selector. */
+  .data-table .sticky-actions {
+    position: sticky;
+    right: 0;
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border);
+  }
+  .data-table tbody tr:hover .sticky-actions { background: var(--bg-elevated); }
+  .data-table thead .sticky-actions { background: var(--bg-surface); }
+  /* On a phone the pinned column covered every column but Name; the row
+     scrolls as a whole there instead. */
+  @media (max-width: 767px) {
+    .data-table .sticky-actions { position: static; border-left: 0; }
+  }
+
+  /* ── Jobs design system: shared components (docs/job-layer-plan.md §7) ──
+     Built once from the approved Deal Memos "Sheet" mockup and used by every
+     Jobs screen — the dashboard, job home's Crew & dates table, and (Phase 1b)
+     the restyled day pages. Not the call sheet document, which stays on its
+     own inline-style template (CLAUDE.md, "The two rendered documents"). */
+
+  /* Card: a raised surface with a hover lift, for a list of things (a job on
+     the dashboard, a day on Shoot days) rather than a form section — .card
+     alone has no hover state, because most of its uses aren't clickable. */
+  .card-raised {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 0.875rem;
+    box-shadow: 0 1px 2px var(--shadow-color);
+    transition: border-color var(--default-transition-duration) var(--default-transition-timing-function),
+                background var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+  .card-raised:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elevated);
+  }
+
+  /* Field: borderless until hover or focus — a job's client/production
+     company/payroll provider, which read as plain text most of the time and
+     only need to look like an input while being changed. */
+  .field-ghost {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-weight: 550;
+    color: var(--text-primary);
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: background var(--default-transition-duration) var(--default-transition-timing-function),
+                box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+  .field-ghost:hover { background: var(--bg-inset); }
+  .field-ghost:focus { background: var(--bg-elevated); box-shadow: 0 0 0 2px var(--accent-subtle); }
+  /* An empty field must look empty. The placeholder used to inherit the
+     value's weight, so an unset "Client" read as if the client were called
+     "Client". Regular weight, muted, italic — unmistakably a prompt. */
+  .field-ghost::placeholder { color: var(--text-muted); font-weight: 400; font-style: italic; opacity: 1; }
+
+  /* DateText: monospace, tabular digits — every date and day-count in the Jobs
+     screens reads this way, so a column of dates lines up. */
+  .date-text { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* DayTypeTag / DayTypePill — Travel in / Prep-Scout / Shoot day /
+     Wrap day / Travel out, colored consistently everywhere they appear: table
+     headers, calendar legends, deal-memo-style day rows. */
+  .day-tag {
+    display: inline-flex; align-items: center; gap: 0.375rem;
+    font-size: 0.75rem; font-weight: 500; white-space: nowrap;
+  }
+  .day-tag::before { content: ""; width: 0.4375rem; height: 0.4375rem; border-radius: 50%; background: currentColor; flex: none; }
+  .day-tag-travel { color: var(--day-travel); }
+  /* Travel out is travel: same colour as travel in, so the calendar reads
+     "on the move" at both ends of a job. */
+  .day-tag-travel_out { color: var(--day-travel); }
+  .day-tag-prep   { color: var(--day-prep); }
+  .day-tag-shoot  { color: var(--day-shoot); }
+  .day-tag-wrap   { color: var(--day-wrap); }
+  .day-tag-checkin { color: var(--day-checkin); }
+  .day-tag-off    { color: var(--day-off); }
+
+  .day-pill {
+    display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 9999px;
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap;
+  }
+  .day-pill-travel { background: var(--day-travel-bg); color: var(--day-travel); }
+  .day-pill-travel_out { background: var(--day-travel-bg); color: var(--day-travel); }
+  .day-pill-prep   { background: var(--day-prep-bg);   color: var(--day-prep); }
+  .day-pill-shoot  { background: var(--day-shoot-bg);  color: var(--day-shoot); }
+  .day-pill-wrap   { background: var(--day-wrap-bg);   color: var(--day-wrap); }
+  .day-pill-checkin { background: var(--day-checkin-bg); color: var(--day-checkin); }
+  .day-pill-off    { background: var(--day-off-bg);    color: var(--day-off); }
+
+  .roster-chip {
+    display: inline-flex; align-items: center; gap: 0.3125rem;
+    font-size: 0.6875rem; color: var(--text-muted); white-space: nowrap;
+  }
+  .roster-chip::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; border: 1.5px solid currentColor; }
+  .roster-chip.linked { color: var(--text-secondary); }
+  .roster-chip.linked::before { background: var(--success); border-color: var(--success); }
+
+  /* "custom" — a hire's own dates diverging from the crew's. */
+  .custom-pill {
+    font-size: 0.625rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--accent-text); background: var(--accent-subtle); border-radius: 0.25rem; padding: 0.0625rem 0.3125rem;
+    white-space: nowrap;
+  }
+
+  /* DataTable: a raised surface around a table, with row hover — the Crew &
+     dates Sheet, and (Phase 1b) every restyled day-page list.
+     No sticky header: the wrapper's overflow-x (so a wide table scrolls on a
+     phone) makes the wrapper the scroll container, and a sticky <th> can only
+     stick inside it — never to the page. Sticking to the page would mean giving
+     up horizontal scroll; not worth it until a table is long enough to need it. */
+  .data-table-raised {
+    overflow-x: auto;
+    /* Positioned, so anything absolute inside the table (an sr-only header
+       label) is clipped by this scroller instead of anchoring to the page
+       outside it and widening the whole page on a phone. */
+    position: relative;
+    border-radius: 0.875rem;
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    box-shadow: 0 1px 2px var(--shadow-color);
+  }
+  .data-table-raised table { width: 100%; min-width: 42rem; border-collapse: collapse; }
+  .data-table-raised th {
+    text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-muted); padding: 0.6875rem 0.875rem; background: var(--bg-surface);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .data-table-raised td {
+    padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 0.8125rem;
+  }
+  .data-table-raised tr:last-child td { border-bottom: 0; }
+  .data-table-raised tbody tr { transition: background var(--default-transition-duration) var(--default-transition-timing-function); }
+  .data-table-raised tbody tr:hover { background: var(--bg-inset); }
+  /* A person's dates note sits under their row as part of it: no rule
+     between the two, and no hover of its own. */
+  .data-table-raised tr:has(+ tr.note-row) td { border-bottom: 0; }
+  .data-table-raised tr.note-row:hover { background: transparent; }
+
+  /* A cell that opens the calendar. Lighter text (`.inherit`) is "same as
+     crew"; hovering or opening it lifts it onto the popover surface. */
+  .cell-btn {
+    display: grid; gap: 0.25rem; width: 100%; min-height: 2.5rem; text-align: left; align-content: center;
+    padding: 0.375rem 0.5rem; border-radius: 0.5rem; border: 1px solid transparent; background: transparent;
+    color: inherit; font: inherit;
+    transition: background var(--default-transition-duration) var(--default-transition-timing-function),
+                border-color var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+  /* A crew date on the Job details card: the same button, framed, since it
+     stands on its own rather than in a table cell. Before the states below
+     so hover, open and next still win. */
+  .cell-btn.date-chip {
+    align-content: start; min-height: 3.75rem; padding: 0.5rem 0.625rem; font-size: 0.8125rem;
+    background: var(--bg-inset); border-color: var(--border);
+  }
+  .cell-btn:hover { background: var(--popover-bg); border-color: var(--border); }
+  .cell-btn.is-open { background: var(--popover-bg); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-subtle); }
+  .cell-btn.has-conflict { box-shadow: inset 0 0 0 1.5px var(--danger); }
+  .cell-btn .inherit { color: var(--text-muted); }
+  .cell-btn .empty { color: var(--text-muted); font-size: 0.75rem; white-space: nowrap; }
+
+  /* The one thing to do next on a page that has an order to it — a single bar,
+     one sentence, at most one action. Replaces a page of instructions: the
+     producer reads one line, not the manual. */
+  .next-step {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem;
+    padding: 0.75rem 1rem; border-radius: 0.75rem;
+    background: var(--accent-subtle); border: 1px solid var(--accent-subtle);
+  }
+  .next-step-label {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent-text); margin-right: 0.5rem;
+  }
+  /* The exact cell the next step means — dashed, so it reads as "put
+     something here" rather than as selected. */
+  .cell-btn.is-next { border: 1.5px dashed var(--accent); }
+  .cell-btn.is-next .empty { color: var(--accent-text); }
+
+  /* The billed-dollar bar (Budget → Reconcile): where each billed dollar went
+     — cost, billing with no cost booked yet (hatched), profit. Mixed from the
+     tokens because a bare --bg-elevated all but vanishes on the light theme's
+     translucent surfaces (budget handoff §12). */
+  .bill-bar {
+    display: flex; height: 0.75rem; border-radius: 999px; overflow: hidden;
+    background: var(--bg-inset); border: 1px solid var(--border);
+  }
+  .bill-bar > span { height: 100%; transition: width 300ms ease; }
+  .bill-seg-cost { background: color-mix(in srgb, var(--accent) 34%, transparent); }
+  .bill-seg-unrec {
+    background: repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--warning) 55%, transparent) 0 4px, transparent 4px 8px);
+  }
+  .bill-seg-profit { background: color-mix(in srgb, var(--success) 70%, transparent); }
+  .bill-key {
+    display: inline-block; width: 0.625rem; height: 0.625rem; border-radius: 2px;
+    margin-right: 0.3rem; vertical-align: -0.05rem; border: 1px solid var(--border);
+  }
+
+  /* A day of the shoot that hasn't been set up yet (the Shoot days tab):
+     dashed, like .cell-btn.is-next, because it's a place to put something
+     rather than a thing. Flat: it isn't clickable as a whole. */
+  .card-placeholder {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 0.875rem;
+    background: transparent;
+  }
+  /* "DAY 2" over a day card's date — the same eyebrow as the Next bar's label. */
+  .day-label {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent-text);
+  }
+  .day-label.muted { color: var(--text-muted); }
+  .day-label.warn { color: var(--warning); }
+
+  /* Popover: the floating calendar surface. */
+  .popover-surface {
+    background: var(--popover-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 0.875rem;
+    box-shadow: var(--popover-shadow);
+  }
+
+  /* RangeCalendar */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.125rem; }
+  .cal-dow { text-align: center; font-size: 0.625rem; font-weight: 600; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.25rem 0; }
+  .cal-day {
+    height: 2.125rem; border: 0; border-radius: 0.5rem; background: transparent;
+    font-family: var(--font-mono); font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--text-primary);
+    transition: background 0.1s ease;
+  }
+  .cal-day:hover { background: var(--bg-elevated); }
+  .cal-day.out { color: var(--text-muted); opacity: 0.5; }
+  .cal-day.tint-travel { background: var(--day-travel-bg); color: var(--day-travel); }
+  .cal-day.tint-travel_out { background: var(--day-travel-bg); color: var(--day-travel); }
+  .cal-day.tint-prep   { background: var(--day-prep-bg);   color: var(--day-prep); }
+  .cal-day.tint-shoot  { background: var(--day-shoot-bg);  color: var(--day-shoot); }
+  .cal-day.tint-wrap   { background: var(--day-wrap-bg);   color: var(--day-wrap); }
+  .cal-day.tint-checkin { background: var(--day-checkin-bg); color: var(--day-checkin); }
+  .cal-day.tint-off    { background: var(--day-off-bg);    color: var(--day-off); }
+  .cal-day.mine { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .cal-day.preview { background: var(--accent-subtle); color: var(--accent-text); }
+  .cal-day.suggest { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent-text); font-weight: 600; }
+  .cal-day.crew-mark { box-shadow: inset 0 0 0 1.5px var(--text-muted); }
+  .cal-day.start, .cal-day.start:hover { background: var(--accent); color: #fff; box-shadow: none; }
+}
+
+/* ── Hero screenshot, light/dark (landing) ──
+   A static PNG can't read CSS variables, so it can't follow the theme the
+   way everything else on this page does. Two images, one shown at a time,
+   keyed off the same html[data-theme="light"] override every other themed
+   value on this page uses. */
+.hero-shot { display: block; }
+.hero-shot-light { display: none; }
+html[data-theme="light"] .hero-shot-dark  { display: none; }
+html[data-theme="light"] .hero-shot-light { display: block; }
+
+/* ── Live confirmation pulse (landing hero) ── */
+@keyframes livePulse {
+  0%   { box-shadow: 0 0 0 0 var(--success-subtle); opacity: 1; }
+  70%  { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); opacity: 0.85; }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); opacity: 1; }
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success);
+  animation: livePulse 1.8s ease-out infinite;
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+
+@keyframes confirmIn {
+  0%   { opacity: 0; transform: translateY(3px) scale(0.92); }
+  60%  { opacity: 1; transform: translateY(0) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.confirm-pill { animation: confirmIn 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .confirm-pill { animation: none; }
+  .bill-bar > span { transition: none; }
+}
+
+/* ── Quick Import demo: AI "write head" point + row reveal (landing) ── */
+@keyframes qiPoint {
+  0%   { left: 5%;  top: 16%; opacity: 0; transform: scale(0.5); }
+  12%  { opacity: 1; transform: scale(1); }
+  85%  { opacity: 1; }
+  100% { left: 95%; top: 90%; opacity: 0; transform: scale(0.5); }
+}
+.qi-point { animation: qiPoint 1.2s cubic-bezier(0.5, 0, 0.5, 1) both; }
+@keyframes qiRowIn {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+.qi-row-in { animation: qiRowIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .qi-point { animation: none; display: none; }
+  .qi-row-in { animation: none; clip-path: none; }
+}

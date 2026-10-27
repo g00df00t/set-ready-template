@@ -1,0 +1,459 @@
+{
+ "_about": [
+  "The reference job, as reconciled in the v7 prototype (2026-10-02).",
+  "A real job reconciled end to end against signed estimate EST-0001 ($66,370). All money in integer cents; markup in basis points.",
+  "Expected figures are what the prototype's own calc()/totals() produce on this data, converted to cents. The handoff's section 9 is an older,",
+  "partly mis-summed state of the same job (its bucket subtotals don't add up from its lines, and it lists Yakima as 6,875 instead of 8,775)",
+  "-- use THIS file. Shared on purpose: a client-side mirror of services/budget.py, if one is ever written, must pass the same cases."
+ ],
+ "lines": [
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Producer / Director of Photography — 6 days",
+   "est_cents": 1200000,
+   "act_cents": 800000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Project development + pre-production",
+   "est_cents": 250000,
+   "act_cents": 250000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Still photography component — 6 days @ 500",
+   "est_cents": 300000,
+   "act_cents": 150000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Licensing — up to 100 still images",
+   "est_cents": 300000,
+   "act_cents": 300000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Travel days — 4",
+   "est_cents": 200000,
+   "act_cents": 100000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Editorial — project load",
+   "est_cents": 150000,
+   "act_cents": 150000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Editorial — hero edit",
+   "est_cents": 650000,
+   "act_cents": 650000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Editorial — cut-downs + reframing",
+   "est_cents": 175000,
+   "act_cents": 175000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Photo retouching — 5 hrs @ 150",
+   "est_cents": null,
+   "act_cents": 75000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Cancellation fee — dropped days",
+   "est_cents": null,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Production fee",
+   "est_cents": null,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": "production_fee"
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Insurance",
+   "est_cents": null,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": "insurance"
+  },
+  {
+   "bucket": "fee",
+   "block": null,
+   "name": "Contingency",
+   "est_cents": null,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": "contingency"
+  },
+  {
+   "bucket": "rate",
+   "block": "Detroit",
+   "name": "Sound mixer (local) — 3 days @ 1,300",
+   "est_cents": 390000,
+   "act_cents": 260000,
+   "bill_cents": 260000,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Detroit",
+   "name": "2nd camera / AC / drone — 3 days + travel",
+   "est_cents": 420000,
+   "act_cents": 395000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Detroit",
+   "name": "Video camera package + media management",
+   "est_cents": 210000,
+   "act_cents": 154758,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Detroit",
+   "name": "Crew per diem",
+   "est_cents": 82500,
+   "act_cents": 51485,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Detroit",
+   "name": "Ground transportation — Seattle",
+   "est_cents": 15000,
+   "act_cents": 22497,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Detroit",
+   "name": "Baggage fees",
+   "est_cents": 40000,
+   "act_cents": 40000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Detroit",
+   "name": "Mini van rental and fuel — Detroit",
+   "est_cents": 100000,
+   "act_cents": 77223,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Detroit",
+   "name": "Flights — 2 pax RT SEA–DTW",
+   "est_cents": 250000,
+   "act_cents": 321644,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Detroit",
+   "name": "Lodging — Trumbull & Porter, Corktown",
+   "est_cents": 250000,
+   "act_cents": 145728,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Puget Sound",
+   "name": "Sound mixer — 2 days @ 1,300",
+   "est_cents": 260000,
+   "act_cents": 130000,
+   "bill_cents": 130000,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Puget Sound",
+   "name": "2nd camera / AC / drone — 2 days",
+   "est_cents": 200000,
+   "act_cents": 85000,
+   "bill_cents": 100000,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Puget Sound",
+   "name": "Video camera package + media management",
+   "est_cents": 140000,
+   "act_cents": 54794,
+   "bill_cents": 70000,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Puget Sound",
+   "name": "Crew meals",
+   "est_cents": 27000,
+   "act_cents": 10000,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": false,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Yakima",
+   "name": "Sound mixer — 2 days + travel",
+   "est_cents": 380000,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": true,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Yakima",
+   "name": "2nd camera / AC — 1 day + travel",
+   "est_cents": 200000,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": true,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Yakima",
+   "name": "Video camera package + media management",
+   "est_cents": 70000,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": true,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Yakima",
+   "name": "Crew per diem",
+   "est_cents": 67500,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": true,
+   "floor_kind": null
+  },
+  {
+   "bucket": "rate",
+   "block": "Yakima",
+   "name": "Mileage",
+   "est_cents": 40000,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": true,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": "Yakima",
+   "name": "Lodging",
+   "est_cents": 120000,
+   "act_cents": null,
+   "bill_cents": null,
+   "markup_bp": 0,
+   "dropped": true,
+   "floor_kind": null
+  },
+  {
+   "bucket": "pass",
+   "block": null,
+   "name": "SSD 2TB project drives ×3 + delivery/backup — Amazon",
+   "est_cents": 150000,
+   "act_cents": 129187,
+   "bill_cents": null,
+   "markup_bp": 1500,
+   "dropped": false,
+   "floor_kind": null
+  }
+ ],
+ "invoices": [
+  {
+   "label": "50% deposit on estimate",
+   "amount_cents": 3318500,
+   "issued_on": "2026-07-14",
+   "paid": true,
+   "paid_on": "2026-08-19"
+  }
+ ],
+ "expected": {
+  "billed_cents": 4657142,
+  "cost_cents": 1877316,
+  "profit_loss_cents": 2779826,
+  "unreconciled_cents": 0,
+  "by_bucket": {
+   "fee": {
+    "billed_cents": 2650000,
+    "cost_cents": 0,
+    "profit_loss_cents": 2650000
+   },
+   "rate": {
+    "billed_cents": 1230000,
+    "cost_cents": 1119552,
+    "profit_loss_cents": 110448
+   },
+   "pass": {
+    "billed_cents": 777142,
+    "cost_cents": 757764,
+    "profit_loss_cents": 19378
+   }
+  },
+  "estimate_cents": 6637000,
+  "projected_billing_cents": 4657142,
+  "dropped_scope_cents": 1957500,
+  "expense_variance_cents": 22358,
+  "margin_bp": 5969,
+  "invoiced_cents": 3318500,
+  "received_cents": 3318500,
+  "left_to_invoice_cents": 1338642,
+  "cash_in_hand_cents": 1441184,
+  "committed_cents": 0,
+  "after_committed_cents": 1441184,
+  "markup_to_bill_cents": 19378,
+  "lines": {
+   "Video camera package + media management|Detroit": {
+    "billed_cents": 210000,
+    "cost_cents": 154758,
+    "profit_loss_cents": 55242
+   },
+   "Crew per diem|Detroit": {
+    "billed_cents": 51485,
+    "cost_cents": 51485,
+    "profit_loss_cents": 0
+   },
+   "SSD 2TB project drives ×3 + delivery/backup — Amazon|": {
+    "billed_cents": 148565,
+    "cost_cents": 129187,
+    "profit_loss_cents": 19378
+   },
+   "Sound mixer — 2 days @ 1,300|Puget Sound": {
+    "billed_cents": 130000,
+    "cost_cents": 130000,
+    "profit_loss_cents": 0
+   },
+   "Photo retouching — 5 hrs @ 150|": {
+    "billed_cents": 75000,
+    "cost_cents": 0,
+    "profit_loss_cents": 75000
+   },
+   "Cancellation fee — dropped days|": {
+    "billed_cents": null,
+    "cost_cents": 0,
+    "profit_loss_cents": null
+   }
+  },
+  "over_variance_band": [
+   "Ground transportation — Seattle",
+   "Flights — 2 pax RT SEA–DTW"
+  ],
+  "floor_lines_unquoted": [
+   "production_fee",
+   "insurance",
+   "contingency"
+  ]
+ }
+}

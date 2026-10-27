@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter; margin: 0.6in; }
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; color: #1a1a1a; font-size: 10pt; line-height: 1.4; }
+  h1 { font-size: 16pt; margin: 0 0 2px; }
+  .sub { color: #555; margin: 0 0 14px; }
+  h2 { font-size: 10pt; text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 5px;
+       padding-bottom: 3px; border-bottom: 1px solid #ccc; }
+  .kv b { display: inline-block; min-width: 72px; }
+  .kv div { margin: 1px 0; }
+  ul { margin: 0; padding-left: 16px; }
+  li { margin: 2px 0; }
+  .day { margin: 0 0 10px; }
+  .day h3 { font-size: 10.5pt; margin: 0 0 3px; }
+  .muted { color: #666; }
+  .pre { white-space: pre-line; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 3px 6px 3px 0; vertical-align: top; }
+</style>
+</head>
+<body>
+<h1>{{ s.talent }}</h1>
+<p class="sub">{{ s.job }}{% if s.client and s.client != s.job %} · {{ s.client }}{% endif %}</p>
+
+<div class="kv">
+  {% if s.agency %}<div><b>Agency:</b> {{ s.agency }}{% if s.agent %} · {{ s.agent }}{% endif %}</div>{% endif %}
+  {% if s.bill_to %}<div><b>Bill to:</b> {{ s.bill_to }}</div>{% endif %}
+</div>
+
+{% if s.dates %}
+<h2>Dates</h2>
+<ul>{% for line in s.dates %}<li>{{ line }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% if s.travel %}
+<h2>Travel</h2>
+<ul>{% for line in s.travel %}<li>{{ line }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% if s.hotels or s.hotel_note %}
+<h2>Hotel</h2>
+{% for h in s.hotels %}
+<div class="kv" style="margin-bottom: 6px;">
+  <div><b>{{ h.name }}</b></div>
+  {% if h.address %}<div>{{ h.address }}</div>{% endif %}
+  {% if h.phone %}<div>{{ h.phone }}</div>{% endif %}
+  <div>Check in {{ h.check_in }} · Check out {{ h.check_out }}</div>
+</div>
+{% endfor %}
+{% if s.hotel_note %}<div class="pre">{{ s.hotel_note }}</div>{% endif %}
+{% endif %}
+
+{% if s.shoot_days %}
+<h2>Shoot {{ "day" if s.shoot_days|length == 1 else "days" }}</h2>
+{% for d in s.shoot_days %}
+<div class="day">
+  <h3>{{ d.date }}{% if d.label %} · {{ d.label }}{% endif %}</h3>
+  <table>
+    <tr><td><b>Call</b></td><td>{{ d.call or "To come" }}</td></tr>
+    {% if d.location or d.address %}<tr><td><b>Location</b></td><td>{{ d.location }}{% if d.location and d.address %}<br>{% endif %}{{ d.address }}</td></tr>{% endif %}
+    {% if d.parking %}<tr><td><b>Parking</b></td><td>{{ d.parking }}</td></tr>{% endif %}
+    {% if d.meals %}<tr><td><b>Meals</b></td><td>{{ d.meals }}</td></tr>{% endif %}
+    {% if d.weather %}<tr><td><b>Weather</b></td><td>{{ d.weather }}</td></tr>{% endif %}
+  </table>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if s.prep_note %}
+<h2>Before you arrive</h2>
+<div class="pre">{{ s.prep_note }}</div>
+{% endif %}
+
+<h2>Who to call</h2>
+<table>
+  {% for c in s.contacts %}
+  <tr>
+    <td><b>{{ c.name }}</b>{% if c.role %} <span class="muted">{{ c.role }}</span>{% endif %}</td>
+    <td>{{ c.phone }}</td>
+    <td>{{ c.email }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if s.notes %}
+<h2>Also</h2>
+<div class="pre">{{ s.notes }}</div>
+{% endif %}
+</body>
+</html>

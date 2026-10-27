@@ -1,0 +1,358 @@
+{#
+  The call sheet. Ported from the _SYSTEM_PROMPT that used to describe this to a
+  model in English — same sections, same order, same colours.
+
+  Rules that carry over and must not drift:
+    - Inline styles only. No <style> block; email clients strip them.
+    - Any row pairing a left value with a right-aligned one is a 100%-width
+      table with two <td> cells, the right one align="right" with padding-left.
+      Never two spans side by side: real data is longer than sample data and a
+      long name must wrap in its own cell rather than run into its neighbour.
+    - Every text cell sets color explicitly. Never inherit.
+    - th cells get white-space:nowrap so "CALL TIME" doesn't stack.
+    - Every table carries width:100% in its STYLE, not only the width="100%"
+      attribute. WeasyPrint does not apply the legacy attribute, so in the PDF
+      the tables shrank to fit their content — sections with narrow content
+      (Weather, Talent, Schedule) ended up as short stubs beside full-width
+      ones. It looked correct in every browser.
+    - A missing value is omitted, never printed as null.
+    - Department and location sub-headers are LARGER than the rows beneath them
+      (14px against the table's 13px). They were 12px, which made every heading
+      smaller than the bold role text it introduced — inverted hierarchy, and it
+      read as clutter rather than structure. They also sit flush with the
+      column cells; the 20px indent added a second alignment for no gain.
+#}
+{%- set NAVY = "#1e3359" -%}
+{%- set HEAD = "#2d4a7a" -%}
+{%- set LIGHT = "#f4f6f9" -%}
+{%- set ZEBRA = "#f9fafb" -%}
+{%- set SUBHEAD = "#dce8f0" -%}
+{%- set INK = "#1a1a1a" -%}
+{%- set GRAY = "#555" -%}
+{%- set MUTED = "#777" -%}
+{%- set FAINT = "#999" -%}
+
+{%- macro section_bar(title) -%}
+<tr><td colspan="9" style="background:{{ NAVY }};color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:12px;letter-spacing:0.5px;padding:8px 12px;">{{ title }}</td></tr>
+{%- endmacro -%}
+
+{%- macro map_pills(address, apple=None, google=None) -%}
+{%- set a = apple or (address | maps("apple")) -%}
+{%- set g = google or (address | maps("google")) -%}
+<a href="{{ a }}" style="border:1px solid #ccc;border-radius:4px;padding:3px 8px;font-size:11px;text-decoration:none;color:{{ NAVY }};margin-right:6px;display:inline-block;">📍 Apple Maps</a><a href="{{ g }}" style="border:1px solid #ccc;border-radius:4px;padding:3px 8px;font-size:11px;text-decoration:none;color:{{ NAVY }};display:inline-block;">🗺 Google Maps</a>
+{%- endmacro -%}
+
+{%- macro split_row(left, right, right_width="") -%}
+<table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+<td style="color:{{ INK }};font-size:13px;vertical-align:top;">{{ left }}</td>
+<td align="right" valign="top" style="padding-left:24px;font-size:13px;{{ right_width }}">{{ right }}</td>
+</tr></table>
+{%- endmacro -%}
+
+{%- macro people_table(block, group_label_default) -%}
+<table width="100%" style="width:100%;border-collapse:collapse;font-size:13px;">
+  <tr style="background:{{ HEAD }};">
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Role</th>
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Name</th>
+    {% if block.show_phone %}
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Phone</th>
+    {% endif %}
+    {% if block.show_email %}
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Email</th>
+    {% endif %}
+    <th align="right" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Call Time</th>
+  </tr>
+  {% set cols = 3 + (1 if block.show_phone else 0) + (1 if block.show_email else 0) %}
+  {% if block.groups %}
+    {% set ns = namespace(i=0) %}
+    {% for group in block.groups %}
+      {% if group.label %}
+  <tr><td colspan="{{ cols }}" style="background:{{ SUBHEAD }};color:{{ NAVY }};font-weight:bold;font-size:14px;padding:8px 12px;">{{ group.label }}</td></tr>
+      {% elif group_label_default %}
+  <tr><td colspan="{{ cols }}" style="background:{{ SUBHEAD }};color:{{ NAVY }};font-weight:bold;font-size:14px;padding:8px 12px;">{{ group_label_default }}</td></tr>
+      {% endif %}
+      {% for p in group.rows %}
+        {{ person_row(p, block, ns.i) }}
+        {% set ns.i = ns.i + 1 %}
+      {% endfor %}
+    {% endfor %}
+  {% else %}
+    {% for p in block.rows %}
+      {{ person_row(p, block, loop.index0) }}
+    {% endfor %}
+  {% endif %}
+</table>
+{%- endmacro -%}
+
+{%- macro person_row(p, block, index) -%}
+<tr style="background:{{ '#ffffff' if index % 2 == 0 else ZEBRA }};">
+  <td style="color:{{ INK }};font-weight:bold;padding:9px 12px;">{{ p.role or "" }}</td>
+  <td style="color:{{ INK }};padding:9px 12px;">{{ p.name or "" }}</td>
+  {% if block.show_phone %}
+  {# nowrap: a phone number split across two lines is unreadable and unusable.
+     Long emails squeeze this column — real ones are far longer than the
+     name@example.com in the fixtures, which is why this only showed up against
+     seeded data. #}
+  <td style="color:{{ INK }};padding:9px 12px;white-space:nowrap;">{{ p.phone or "" }}</td>
+  {% endif %}
+  {% if block.show_email %}
+  <td style="color:{{ INK }};padding:9px 12px;">{{ p.email or "" }}</td>
+  {% endif %}
+  {% set ct = p.call_time | display_time %}
+  {% if ct %}
+  <td align="right" style="color:{{ INK }};font-weight:bold;padding:9px 12px;white-space:nowrap;">{{ ct }}</td>
+  {% else %}
+  <td align="right" style="color:{{ FAINT }};padding:9px 12px;white-space:nowrap;">N/A</td>
+  {% endif %}
+</tr>
+{%- endmacro -%}
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="color-scheme" content="light only"></head>
+<body style="margin:0;padding:0;background:#e9ecf1;font-family:system-ui,-apple-system,Arial,sans-serif;">
+<div style="max-width:680px;margin:0 auto;background:#ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.12);">
+
+{# ── 1. HEADER ─────────────────────────────────────────────────────────── #}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  <tr><td style="background:{{ NAVY }};padding:16px 20px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:#ffffff;font-size:20px;font-weight:bold;vertical-align:top;">{{ project.name or "Call Sheet" }}</td>
+      <td align="right" valign="top" style="padding-left:24px;color:#ffffff;font-size:13px;white-space:nowrap;">{{ project.shoot_date | display_date or "" }}
+        {#- "Day 2 of 4": every day of a job carries the job's name, so this is
+            the only thing on the sheet that says which day it is. Set by the
+            router, and only when the job has more than one shoot day. #}
+        {% if project.day_label %}<div style="font-size:11px;font-weight:bold;letter-spacing:0.5px;text-transform:uppercase;margin-top:3px;opacity:0.8;">{{ project.day_label }}</div>{% endif %}</td>
+    </tr></table>
+  </td></tr>
+{% if header_times %}
+  <tr><td style="background:{{ LIGHT }};padding:12px 20px;">
+    {% for pill in header_times %}
+    <span style="display:inline-block;border:1px solid #d5dbe4;border-radius:5px;padding:5px 10px;margin:0 8px 4px 0;">
+      <span style="color:{{ MUTED }};font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">{{ pill.label }}</span>
+      <span style="color:{{ INK }};font-size:13px;font-weight:bold;margin-left:6px;">{{ pill.time }}</span>
+    </span>
+    {% endfor %}
+  </td></tr>
+{% endif %}
+</table>
+
+{# ── 2. WEATHER ────────────────────────────────────────────────────────── #}
+{% if weather %}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  {{ section_bar("Weather") }}
+  <tr><td style="background:{{ LIGHT }};padding:12px 20px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:{{ INK }};font-size:13px;vertical-align:top;">
+        <span style="font-weight:bold;">{{ weather.condition }}</span>
+        {% if weather.high_f is number and weather.low_f is number %}
+        <br>High: {{ weather.high_f }}°F&nbsp;&nbsp;Low: {{ weather.low_f }}°F
+        {% endif %}
+        {% if weather.precipitation_chance %}
+        <br><span style="color:{{ MUTED }};font-size:12px;">💧 {{ weather.precipitation_chance }}% chance of rain</span>
+        {% endif %}
+      </td>
+      <td align="right" valign="top" style="padding-left:24px;color:{{ INK }};font-size:13px;white-space:nowrap;">
+        {% if weather.sunrise %}🌅 Sunrise <span style="font-weight:bold;">{{ weather.sunrise }}</span>{% endif %}
+        {% if weather.sunset %}<br>🌇 Sunset <span style="font-weight:bold;">{{ weather.sunset }}</span>{% endif %}
+      </td>
+    </tr></table>
+  </td></tr>
+</table>
+{% endif %}
+
+{# ── 3. LOCATION & PARKING ─────────────────────────────────────────────── #}
+{% if location %}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  {{ section_bar("Location & Parking") }}
+  <tr><td style="background:{{ LIGHT }};padding:12px 20px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:{{ INK }};font-size:13px;vertical-align:top;width:55%;">
+        {% if location.location_name %}<div style="font-weight:bold;">{{ location.location_name }}</div>{% endif %}
+        {% if location.address %}
+        <div style="margin-top:2px;">{{ location.address }}</div>
+        <div style="margin-top:6px;">{{ map_pills(location.address) }}</div>
+        {% endif %}
+      </td>
+      <td valign="top" style="padding-left:24px;color:{{ INK }};font-size:13px;">
+        {% if location.parking_notes %}<div>{{ location.parking_notes | nl2br }}</div>{% endif %}
+        {% if location.parking_address %}
+        <div style="margin-top:6px;"><span style="color:{{ GRAY }};">Parking location:</span> {{ location.parking_address }}</div>
+        <div style="margin-top:4px;">{{ map_pills(location.parking_address) }}</div>
+        {% endif %}
+        {% if location.additional_notes %}<div style="margin-top:6px;">{{ location.additional_notes | nl2br }}</div>{% endif %}
+      </td>
+    </tr></table>
+  </td></tr>
+{% for move in company_moves %}
+  <tr><td style="background:{{ NAVY if false else '#2d6a8a' }};color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;letter-spacing:0.5px;padding:6px 12px 6px 20px;">Company Move →</td></tr>
+  <tr><td style="background:#eef4f8;padding:12px 20px 12px 28px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:{{ INK }};font-size:13px;vertical-align:top;width:55%;">
+        {% if move.move_time %}<div style="font-weight:bold;">Move at {{ move.move_time | display_time }}</div>{% endif %}
+        {% if move.location_name %}<div style="margin-top:2px;font-weight:bold;">{{ move.location_name }}</div>{% endif %}
+        {% if move.address %}
+        <div style="margin-top:2px;">{{ move.address }}</div>
+        <div style="margin-top:6px;">{{ map_pills(move.address) }}</div>
+        {% endif %}
+      </td>
+      <td valign="top" style="padding-left:24px;color:{{ INK }};font-size:13px;">
+        {% if move.parking_notes %}<div>{{ move.parking_notes | nl2br }}</div>{% endif %}
+        {% if move.parking_address %}
+        <div style="margin-top:6px;"><span style="color:{{ GRAY }};">Parking location:</span> {{ move.parking_address }}</div>
+        <div style="margin-top:4px;">{{ map_pills(move.parking_address) }}</div>
+        {% endif %}
+        {% if move.additional_notes %}<div style="margin-top:6px;">{{ move.additional_notes | nl2br }}</div>{% endif %}
+      </td>
+    </tr></table>
+  </td></tr>
+  {% if move.nearest_hospital %}
+  {% set mh = move.nearest_hospital %}
+  <tr><td style="background:#fdf5f5;padding:7px 20px 7px 28px;color:{{ GRAY }};font-size:12px;">
+    <span style="color:{{ MUTED }};">Nearest hospital:</span> {{ mh.name }}{% if mh.address %} · {{ mh.address }}{% endif %}{% if mh.phone %} · {{ mh.phone }}{% endif %}{% if mh.distance_miles is number %} · {{ mh.distance_miles }} miles away{% endif %}
+    {% if mh.apple_maps_url and mh.google_maps_url %}<span style="margin-left:8px;">{{ map_pills(None, mh.apple_maps_url, mh.google_maps_url) }}</span>{% endif %}
+  </td></tr>
+  {% endif %}
+{% endfor %}
+</table>
+{% endif %}
+
+{# ── 4. NEAREST HOSPITAL — immediately after location, before crew ─────── #}
+{% if hospital %}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  {{ section_bar("Nearest Hospital") }}
+  <tr><td style="background:#f9f0f0;padding:12px 20px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:{{ INK }};font-size:13px;font-weight:bold;vertical-align:top;">
+        {{ hospital.name }}
+        {% if hospital.address %}<div style="color:{{ GRAY }};font-size:12px;font-weight:normal;margin-top:2px;">{{ hospital.address }}</div>{% endif %}
+        {% if hospital.apple_maps_url and hospital.google_maps_url %}
+        <div style="margin-top:6px;">{{ map_pills(None, hospital.apple_maps_url, hospital.google_maps_url) }}</div>
+        {% endif %}
+      </td>
+      <td align="right" valign="top" style="padding-left:24px;color:{{ MUTED }};font-size:12px;white-space:nowrap;">
+        {% if hospital.phone %}{{ hospital.phone }}{% endif %}
+        {% if hospital.distance_miles is number %}<div style="margin-top:2px;">{{ hospital.distance_miles }} miles away</div>{% endif %}
+      </td>
+    </tr></table>
+  </td></tr>
+</table>
+{% endif %}
+
+{# ── 5. CREW ───────────────────────────────────────────────────────────── #}
+<table width="100%" style="width:100%;border-collapse:collapse;">{{ section_bar("Crew") }}</table>
+{{ people_table(crew, None) }}
+
+{# ── 6. AGENCY & CLIENT ────────────────────────────────────────────────── #}
+{% if contacts.rows %}
+<table width="100%" style="width:100%;border-collapse:collapse;">{{ section_bar("Agency & Client") }}</table>
+<table width="100%" style="width:100%;border-collapse:collapse;font-size:13px;">
+  <tr style="background:{{ HEAD }};">
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Organization</th>
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Name</th>
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Role</th>
+    {% if contacts.show_call_time %}
+    <th align="right" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Call Time</th>
+    {% endif %}
+  </tr>
+  {% for c in contacts.rows %}
+  <tr style="background:{{ '#ffffff' if loop.index0 % 2 == 0 else ZEBRA }};">
+    <td style="color:{{ INK }};padding:9px 12px;">{{ c.organization or "" }}</td>
+    <td style="color:{{ INK }};font-weight:bold;padding:9px 12px;">{{ c.name or "" }}</td>
+    <td style="color:{{ INK }};padding:9px 12px;">{{ c.role or "" }}</td>
+    {% if contacts.show_call_time %}
+    {% set ct = c.call_time | display_time %}
+    {% if ct %}
+    <td align="right" style="color:{{ INK }};font-weight:bold;padding:9px 12px;white-space:nowrap;">{{ ct }}</td>
+    {% else %}
+    <td align="right" style="color:{{ FAINT }};padding:9px 12px;white-space:nowrap;">N/A</td>
+    {% endif %}
+    {% endif %}
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{# ── 7. TALENT ─────────────────────────────────────────────────────────── #}
+{% if talent.rows %}
+<table width="100%" style="width:100%;border-collapse:collapse;">{{ section_bar("Talent") }}</table>
+{{ people_table(talent, None) }}
+{% endif %}
+
+{# ── 8. MEAL PLAN ──────────────────────────────────────────────────────── #}
+{% if meal_plan %}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  {{ section_bar("Meal Plan") }}
+  {% for meal in meal_plan %}
+  <tr><td style="background:{{ '#ffffff' if loop.index0 % 2 == 0 else ZEBRA }};padding:9px 12px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:{{ INK }};font-size:13px;font-weight:bold;vertical-align:top;">
+        {{ meal.label }}
+        {% set t = time_range(meal.start, meal.end) %}
+        {% if t %}<div style="color:{{ GRAY }};font-size:12px;font-weight:normal;margin-top:2px;">{{ t }}</div>{% endif %}
+      </td>
+      <td valign="top" style="padding-left:24px;color:{{ INK }};font-size:13px;">{% if meal.notes %}{{ meal.notes | nl2br }}{% endif %}</td>
+    </tr></table>
+  </td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{# ── 9. SCHEDULE ───────────────────────────────────────────────────────── #}
+{% if schedule %}
+<table width="100%" style="width:100%;border-collapse:collapse;">{{ section_bar("Schedule") }}</table>
+<table width="100%" style="width:100%;border-collapse:collapse;font-size:13px;">
+  <tr style="background:{{ HEAD }};">
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;white-space:nowrap;">Time</th>
+    <th align="left" style="color:#ffffff;font-weight:bold;text-transform:uppercase;font-size:11px;padding:9px 12px;">Description</th>
+  </tr>
+  {% for item in schedule %}
+  <tr style="background:{{ '#ffffff' if loop.index0 % 2 == 0 else ZEBRA }};">
+    <td style="color:{{ INK }};font-weight:bold;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:9px 12px;white-space:nowrap;vertical-align:top;">{{ time_range(item.start_time, item.end_time) or "" }}</td>
+    <td style="color:{{ INK }};padding:9px 12px;">{{ item.description or "" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{# ── 10. ACCOMMODATIONS ────────────────────────────────────────────────── #}
+{% if accommodation %}
+{% set a = accommodation %}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  {{ section_bar("Accommodations") }}
+  <tr><td style="background:{{ LIGHT }};padding:12px 20px;">
+    <table width="100%" style="width:100%;border-collapse:collapse;"><tr>
+      <td style="color:{{ INK }};font-size:13px;font-weight:bold;vertical-align:top;">
+        {% if a.website_url %}<a href="{{ a.website_url }}" style="color:{{ NAVY }};font-weight:bold;text-decoration:underline;">{{ a.hotel_name or a.address }}</a>
+        {% else %}{{ a.hotel_name or a.address }}{% endif %}
+      </td>
+      <td align="right" valign="top" style="padding-left:24px;color:{{ MUTED }};font-size:12px;white-space:nowrap;">
+        {#- "is number", never "is not none": a key that was never set is Jinja's
+            Undefined, which *is not none* — so a hotel with no address (or one
+            that didn't geocode) printed "· miles from set" with no number. #}
+        {% if a.distance_from_set_miles is number %}{{ a.distance_from_set_miles }} miles from set{% endif %}
+      </td>
+    </tr></table>
+    {% if a.address %}
+    <div style="color:{{ INK }};font-size:13px;margin-top:4px;">{{ a.address }}</div>
+    <div style="margin-top:6px;">{{ map_pills(a.address) }}</div>
+    {% endif %}
+    {% set bits = [] %}
+    {% if a.phone %}{% set _ = bits.append(a.phone) %}{% endif %}
+    {% if a.room_block %}{% set _ = bits.append("Booked under: " ~ a.room_block) %}{% endif %}
+    {% if a.check_in_time %}{% set _ = bits.append("Check-in: " ~ (a.check_in_time | display_time)) %}{% endif %}
+    {% if a.check_out_time %}{% set _ = bits.append("Check-out: " ~ (a.check_out_time | display_time)) %}{% endif %}
+    {% if bits %}<div style="color:{{ GRAY }};font-size:12px;margin-top:6px;">{{ bits | join(" · ") }}</div>{% endif %}
+    {% if a.amenities %}<div style="color:{{ INK }};font-size:13px;margin-top:6px;">{{ a.amenities | nl2br }}</div>{% endif %}
+    {% if a.notes %}<div style="color:{{ INK }};font-size:13px;margin-top:4px;">{{ a.notes | nl2br }}</div>{% endif %}
+  </td></tr>
+</table>
+{% endif %}
+
+{# ── 11. FOOTER ────────────────────────────────────────────────────────── #}
+<table width="100%" style="width:100%;border-collapse:collapse;">
+  <tr><td align="center" style="padding:14px 12px;color:{{ FAINT }};font-size:11px;">Generated by SET&gt;READY</td></tr>
+</table>
+
+</div>
+</body>
+</html>

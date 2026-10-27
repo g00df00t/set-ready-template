@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter landscape; margin: 0.5in; }
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; color: #1a1a1a; font-size: 9pt; }
+  h1 { font-size: 14pt; margin: 0 0 6px; }
+  h2 { font-size: 11pt; margin: 14px 0 4px; letter-spacing: 0.04em; }
+  .head { margin: 0 0 6px; }
+  .head b { display: inline-block; min-width: 64px; }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th, td { border: 1px solid #bbb; padding: 3px 5px; vertical-align: top; overflow-wrap: break-word; }
+  th { background: #f2f2f2; font-weight: 700; text-align: left; }
+  td.none { color: #777; }
+</style>
+</head>
+<body>
+<h1>{{ title }}</h1>
+{% if header %}
+<div class="head">
+  {% for label, value in header %}<div><b>{{ label }}:</b> {{ value }}</div>{% endfor %}
+</div>
+{% endif %}
+{% for label, rows in sections %}
+<h2>{{ label }}</h2>
+<table>
+  <colgroup>{% for w in widths %}<col style="width: {{ w }}%">{% endfor %}</colgroup>
+  <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% else %}
+    <tr><td class="none" colspan="{{ columns|length }}">None</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+</body>
+</html>

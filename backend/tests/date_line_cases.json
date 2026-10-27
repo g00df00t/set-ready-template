@@ -1,0 +1,17 @@
+{
+  "_about": "Deal memo date lines. Shared by backend/tests/test_crew_date_conflicts.py and the front end's formatter test, so the Jobs screen's preview and the PDF can't read differently. Each case: a day type, a [first, last] span, and the exact line.",
+  "cases": [
+    {"type": "travel", "span": ["2026-10-11", "2026-10-11"], "line": "Oct 11th - Sun - Travel in"},
+    {"type": "shoot",  "span": ["2026-10-13", "2026-10-15"], "line": "Oct 13th (Tue) – Oct 15th (Thu) - Shoot day"},
+    {"type": "prep",   "span": ["2026-10-01", "2026-10-02"], "line": "Oct 1st (Thu) – Oct 2nd (Fri) - Prep/Scout"},
+    {"type": "wrap",   "span": ["2026-10-03", "2026-10-03"], "line": "Oct 3rd - Sat - Wrap day"},
+    {"type": "wrap",   "span": ["2026-10-03", "2026-10-04"], "line": "Oct 3rd (Sat) – Oct 4th (Sun) - Wrap day"},
+    {"type": "travel_out", "span": ["2026-10-05", "2026-10-05"], "line": "Oct 5th - Mon - Travel out"},
+    {"type": "shoot",  "span": ["2026-10-12", "2026-10-12"], "line": "Oct 12th - Mon - Shoot day"},
+    {"type": "shoot",  "span": ["2026-10-22", "2026-10-22"], "line": "Oct 22nd - Thu - Shoot day"},
+    {"type": "shoot",  "span": ["2026-12-31", "2027-01-02"], "line": "Dec 31st (Thu) – Jan 2nd (Sat) - Shoot day"},
+    {"type": "off",     "span": ["2026-10-14", "2026-10-14"], "line": "Oct 14th - Wed - Down day – ½ day rate"},
+    {"type": "off",     "span": ["2026-10-14", "2026-10-15"], "line": "Oct 14th (Wed) – Oct 15th (Thu) - Down day – ½ day rate"},
+    {"type": "checkin", "span": ["2026-10-11", "2026-10-11"], "line": "Oct 11th - Sun - Check into hotel (no travel)"}
+  ]
+}

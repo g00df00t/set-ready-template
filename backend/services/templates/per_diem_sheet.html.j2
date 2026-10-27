@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter landscape; margin: 0.5in; }
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; color: #1a1a1a; font-size: 9.5pt; }
+  h1 { font-size: 14pt; margin: 0 0 6px; }
+  .head { margin: 0 0 12px; }
+  .head b { display: inline-block; min-width: 52px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #bbb; padding: 4px 5px; }
+  th { background: #f2f2f2; font-weight: 700; }
+  td.n, th.n { text-align: center; white-space: nowrap; }
+  td.paid { min-width: 110px; }
+  td.name { white-space: nowrap; }
+  tr.totals td { font-weight: 700; background: #f7f7f7; }
+  .what { font-weight: 400; font-size: 8pt; color: #555; }
+</style>
+</head>
+<body>
+<h1>{{ title }}</h1>
+<div class="head">
+  {% if group %}<div><b>Group:</b> {{ group }}</div>{% endif %}
+  <div><b>Rate:</b> {{ rates.other or "—" }} non-shoot day · {{ rates.shoot or "—" }} shoot day</div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>Crew Name</th><th>Notes</th>
+      {% for c in cols %}<th class="n">{{ c.weekday }} {{ c.date }}<br><span class="what">{{ c.what }}</span></th>{% endfor %}
+      <th class="n">Total</th><th>Paid</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td class="name">{{ r.name }}</td><td>{{ r.notes }}</td>
+      {% for c in cols %}<td class="n">{{ r.cells.get(c.key, "") }}</td>{% endfor %}
+      <td class="n">{{ r.total }}</td><td class="paid">{{ r.paid_text }}</td>
+    </tr>
+    {% endfor %}
+    <tr class="totals">
+      <td>Totals</td><td></td>
+      {% for c in cols %}<td class="n">{{ totals.get(c.key, "") }}</td>{% endfor %}
+      <td class="n">{{ total }}</td><td></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

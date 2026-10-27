@@ -1,0 +1,21 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+supabase>=2.9.0
+python-jose[cryptography]>=3.3.0
+pydantic-settings>=2.5.0
+sendgrid>=6.11.0
+anthropic>=0.40.0
+python-multipart>=0.0.9
+email-validator>=2.2.0
+slowapi>=0.1.9
+nh3>=0.2.15
+sentry-sdk[fastapi]>=2.0.0
+weasyprint>=62.0
+# Attachment compression. Both ship manylinux wheels, so neither adds a system
+# package to the Dockerfile the way pango/harfbuzz did for WeasyPrint.
+pymupdf>=1.25.0   # rewrite_images()
+pillow>=10.0.0
+jinja2>=3.1
+# The rooming list's Excel download — what hotels expect and can edit. Pure
+# Python, no system packages.
+openpyxl==3.1.5

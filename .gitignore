@@ -1,0 +1,54 @@
+# Environment
+# .env.* catches .env.staging / .env.production too. Only the exact name
+# `.env` was ignored before, so a backend/.env.staging holding real keys
+# would have been committable.
+.env
+.env.*
+!.env.example
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+.vercel
+
+# Test / build artifacts
+frontend/test-results/
+screenshots/
+
+# iCloud/Dropbox sync duplicates — "card 2.tsx" appearing beside "card.tsx".
+# These have been committed twice now (2026-06-12 and 2026-09-04), both times by
+# a `git add -A` that swept them up. Next ignores the filenames so nothing
+# breaks, which is exactly why they go unnoticed.
+* [2-9].*
+* [0-9][0-9].*
+
+# Research screenshots. `screenshots/` above is anchored at the repo root and
+# at frontend/public, but it matches at ANY depth — which would have swallowed
+# the call-research captures too. Re-include that directory (git can't
+# re-include a file whose parent directory is excluded, so the directory has to
+# be un-excluded first), then drop only the originals: the committed .jpg
+# copies are 23 MB, the 3450px PNGs are 136 MB, and git keeps blobs forever.
+!docs/feedback/**/screenshots/
+docs/feedback/**/screenshots/*.png
+
+# Real producer documents (job info sheets, rooming lists, deal memos, call
+# sheets, expense logs, payroll emails) — unlike the call screenshots above,
+# these carry real crew/talent names, emails, phone numbers, hotel details and
+# pay rates. Reference material for the master-record-documents plan, never
+# committed.
+docs/feedback/**/source-docs/
+supabase/schema_dump_staging.sql

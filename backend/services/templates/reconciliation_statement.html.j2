@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+{# The client's Production Reconciliation (services/reconciliation_statement.py).
+   PDF only, so a <style> block is fine. ASCII marks only in what this writes:
+   " - " not a dash, " | " not a middle dot. Nothing about cost or profit. #}
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter; margin: 0.6in 0.65in; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1f1f1f; font-size: 9pt; line-height: 1.35; }
+  table.mast { border-bottom: 1.5px solid #1f1f1f; margin-bottom: 18px; }
+  table.mast td { border: 0; padding: 0 0 4px; vertical-align: bottom; }
+  .mast .who { font-size: 13pt; font-weight: 700; }
+  .mast .contact { text-align: right; color: #666; font-size: 8pt; }
+  h1 { font-size: 14pt; margin: 0 0 2px; }
+  .subtitle { color: #777; margin: 0 0 10px; }
+  table.facts { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; margin-bottom: 14px; }
+  table.facts td { border: 0; width: 33%; padding: 4px 12px 8px 0; }
+  .k { font-size: 6.5pt; font-weight: 700; letter-spacing: 0.08em; color: #777; text-transform: uppercase; margin-top: 4px; }
+  .pre { white-space: pre-line; }
+  .callout { border-left: 3px solid #1f1f1f; background: #f4f4f2; padding: 7px 10px; margin: 0 0 10px; }
+  .intro { color: #555; margin: 0 0 12px; }
+  h2 { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin: 14px 0 2px; page-break-after: avoid; }
+  table { border-collapse: collapse; width: 100%; }
+  th { font-size: 6.5pt; font-weight: 700; letter-spacing: 0.08em; color: #888; text-transform: uppercase; text-align: left; border-bottom: 1px solid #ccc; padding: 3px 6px; }
+  td { border-bottom: 1px solid #e8e8e8; padding: 4px 6px; vertical-align: top; }
+  tr { page-break-inside: avoid; }
+  .n { text-align: right; white-space: nowrap; font-family: "DejaVu Sans Mono", Menlo, monospace; width: 1in; }
+  .est { color: #8a8a8a; }
+  .note { display: block; color: #8a8a8a; font-size: 7pt; }
+  .dropped .name { color: #8a8a8a; }
+  tr.sub td { font-weight: 700; border-bottom: 0; }
+  .totals { margin-top: 16px; border-top: 1.5px solid #1f1f1f; }
+  .totals td { padding: 5px 6px; }
+  .big td { font-size: 11pt; font-weight: 700; border-bottom: 0; }
+  .foot { color: #888; font-size: 7.5pt; border-top: 1px solid #ddd; margin-top: 18px; padding-top: 6px; }
+</style>
+</head>
+<body>
+<table class="mast"><tr>
+  <td class="who">{{ s.producer.name or s.job_name }}</td>
+  <td class="contact">
+    {% if s.producer.phone %}<div>p/ {{ s.producer.phone }}</div>{% endif %}
+    {% if s.producer.email %}<div>e/ {{ s.producer.email }}</div>{% endif %}
+  </td>
+</tr></table>
+
+<h1>Production Reconciliation</h1>
+<p class="subtitle">Statement of actuals against {% if s.settings.estimate_ref %}Estimate {{ s.settings.estimate_ref }}{% else %}the estimate{% endif %} | This is not an invoice</p>
+
+<table class="facts"><tr>
+  <td>
+    <div class="k">Client</div>
+    {% for ln in contact %}<div>{{ ln }}</div>{% endfor %}
+  </td>
+  <td>
+    <div class="k">Project</div>
+    <div>{{ s.job_name }}</div>
+  </td>
+  <td>
+    <div class="k">Statement date</div>
+    <div>{{ s.statement_on | long_date }}</div>
+    {% if s.production_dates %}<div class="k">Production dates</div><div>{{ s.production_dates }}</div>{% endif %}
+  </td>
+</tr></table>
+
+<div class="callout"><b>This statement is not an invoice.</b> It records the project as shot against the estimate, so the scope changes are on record now rather than arriving with the final invoice.</div>
+{% if s.settings.intro %}<p class="intro pre">{{ s.settings.intro }}</p>{% endif %}
+
+{% for sec in s.sections %}
+<h2>{{ sec.name or "Other" }}</h2>
+<table>
+  <thead><tr><th>Line</th><th class="n">Estimated</th><th class="n">This project</th></tr></thead>
+  <tbody>
+    {% for r in sec.rows %}
+    <tr class="{{ 'dropped' if r.dropped }}">
+      <td><span class="name">{{ r.name }}{% if r.block %} - {{ r.block }}{% endif %}</span>{% if r.note %}<span class="note">{{ r.note }}</span>{% endif %}</td>
+      <td class="n est">{{ r.est | amount }}</td>
+      <td class="n">{{ r.project | amount }}</td>
+    </tr>
+    {% endfor %}
+    {% if sec.rows | length > 1 %}
+    <tr class="sub"><td>{{ sec.name or "Other" }}</td><td class="n est">{{ sec.est | amount }}</td><td class="n">{{ sec.project | amount }}</td></tr>
+    {% endif %}
+  </tbody>
+</table>
+{% endfor %}
+
+<table class="totals">
+  <tr><td>Original estimate</td><td class="n est">{{ s.original | amount }}</td></tr>
+  {% if s.change %}<tr><td>{% if s.change < 0 %}Reduction - scope not shot and expenses under estimate{% else %}Increase - scope added and expenses over estimate{% endif %}</td><td class="n">{{ s.change | amount }}</td></tr>{% endif %}
+  <tr class="big"><td>Revised project total</td><td class="n">{{ s.revised | amount }}</td></tr>
+</table>
+
+{% if s.invoices %}
+<h2>Invoiced to date</h2>
+<table>
+  <tbody>
+    {% for i in s.invoices %}
+    <tr>
+      <td>{{ i.label }}{% if i.issued_on or i.paid_on %}<span class="note">{% if i.issued_on %}Invoiced {{ i.issued_on | long_date }}{% endif %}{% if i.issued_on and i.paid %} | {% endif %}{% if i.paid %}received{% if i.paid_on %} {{ i.paid_on | long_date }}{% endif %}{% endif %}</span>{% endif %}</td>
+      <td class="n">{{ i.amount | amount }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<table class="totals">
+  {% if s.balance >= 0 %}
+  <tr class="big"><td>Balance to be invoiced</td><td class="n">{{ s.balance | amount }}</td></tr>
+  {% else %}
+  <tr class="big"><td>Invoiced beyond the revised total - a credit</td><td class="n">{{ (0 - s.balance) | amount }}</td></tr>
+  {% endif %}
+</table>
+{% endif %}
+
+<div class="foot">
+  {% if s.producer.name %}Prepared by {{ s.producer.name }}.<br>{% endif %}
+  Please confirm this reconciliation reflects your understanding of the project as shot.
+</div>
+</body>
+</html>

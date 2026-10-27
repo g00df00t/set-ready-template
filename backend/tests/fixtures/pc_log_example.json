@@ -1,0 +1,35 @@
+{
+ "_about": [
+  "An invented PC log in the shape of the producer's (docs/producer-documents-map.md section 1.10): every name made up, every amount chosen.",
+  "Her own PC log template is an empty template, so this is the worked case. Expected figures were added up by hand, not by the code under test.",
+  "Money in integer cents; the production fee in basis points."
+ ],
+ "fee_bp": 800,
+ "rows": [
+  {"spent_on": "2026-10-12", "payee": "Example Air", "description": "Flights, 2 crew RT", "amount_cents": 84260, "category": "production_misc"},
+  {"spent_on": "2026-10-12", "payee": "Example Hotel", "description": "3 rooms x 3 nights", "amount_cents": 195000, "category": "production_misc"},
+  {"spent_on": "2026-10-13", "payee": "Example Prop House", "description": "Props", "amount_cents": 31245, "category": "art_props"},
+  {"spent_on": "2026-10-13", "payee": "Example Studio", "description": "Studio day", "amount_cents": 240000, "category": "location_studio"},
+  {"spent_on": "2026-10-13", "payee": "Avery Sample", "description": "Photographer, 2 shoot days", "amount_cents": 300000, "category": "photography"},
+  {"spent_on": "2026-10-14", "payee": "Rowan Sample", "description": "HMU, 2 days", "amount_cents": 130000, "category": "stylist_hmu"},
+  {"spent_on": "2026-10-14", "payee": "Sample Talent Agency", "description": "Talent, 1 day + 20% agency fee", "amount_cents": 180000, "category": "talent"},
+  {"spent_on": "2026-10-14", "payee": "Example Catering", "description": "Lunch, 14", "amount_cents": 48619, "category": "production_misc"},
+  {"spent_on": "2026-10-15", "payee": "Example Rentals", "description": "Video kit, 1 day", "amount_cents": 61500, "category": "video"},
+  {"spent_on": "2026-10-15", "payee": "Producer", "description": "Producer fee", "amount_cents": 250000, "category": "producer"},
+  {"spent_on": "2026-10-16", "payee": "Example Payroll", "description": "Payroll service fee", "amount_cents": 14550, "category": "payroll_fee"},
+  {"spent_on": "2026-10-16", "payee": "Taken off the log", "description": "A hidden generated line", "amount_cents": 99999, "category": "production_misc", "hidden": true}
+ ],
+ "invoices": [
+  {"label": "Advance", "amount_cents": 1000000, "issued_on": "2026-10-01", "paid": true, "paid_on": "2026-10-05"},
+  {"label": "Final invoice", "amount_cents": 657988, "issued_on": "2026-10-20", "paid": false}
+ ],
+ "expected": {
+  "by_category": {"photography": 300000, "video": 61500, "talent": 180000, "stylist_hmu": 130000, "art_props": 31245,
+                  "location_studio": 240000, "production_misc": 327879, "producer": 250000, "payroll_fee": 14550},
+  "total_cents": 1535174,
+  "fee_cents": 122814,
+  "grand_total_cents": 1657988,
+  "advance_cents": 1000000,
+  "difference_cents": 657988
+ }
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: letter landscape; margin: 0.5in; }
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; color: #1a1a1a; font-size: 9pt; }
+  h1 { font-size: 14pt; margin: 0 0 10px; }
+  h2 { font-size: 11pt; margin: 14px 0 4px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #bbb; padding: 3px 5px; vertical-align: top; }
+  th { background: #f2f2f2; font-weight: 700; text-align: left; }
+  th.n, td.n { text-align: center; white-space: nowrap; }
+  td.name { white-space: nowrap; font-weight: 600; }
+  .what { font-weight: 400; font-size: 7.5pt; color: #555; }
+  a { color: #1f5fb0; word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>{{ title }}</h1>
+<p style="margin: 0 0 8px; color: #555;">{{ legend }}</p>
+{% for seg in segments %}
+<h2>{{ seg.name }}</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Agency</th><th>Agent</th><th>Talent</th><th>Rate + fee</th><th>Based</th><th>Notes</th><th>Link</th>
+      {% for c in cols %}<th class="n">{{ c.weekday }} {{ c.date }}<br><span class="what">{{ c.what }}</span></th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in seg.rows %}
+    <tr>
+      <td>{{ r.agency }}</td><td>{{ r.agent }}</td><td class="name">{{ r.name }}</td><td>{{ r.rate }}</td>
+      <td>{{ r.based }}</td><td>{{ r.notes }}</td>
+      <td>{% if r.link %}<a href="{{ r.link }}">{{ r.link }}</a>{% endif %}</td>
+      {% for c in cols %}<td class="n">{{ r.cells.get(c.key, "") }}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+</body>
+</html>
